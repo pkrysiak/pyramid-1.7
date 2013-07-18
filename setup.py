@@ -16,7 +16,8 @@ requires = [
     'nokaut',
     'allegro',
     'formencode',
-    'pyramid_simpleform'
+    'pyramid_simpleform',
+    'PIL'
     ]
 
 links = ['https://github.com/pkrysiak/allegro_repo/archive/master.zip#egg=allegro',
