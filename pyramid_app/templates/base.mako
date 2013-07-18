@@ -54,16 +54,16 @@
             waiting(button);
 
            $.getJSON('/json?search_field='+ $search.text() , function(data){
-              if (data.allegro_price == null){
-                    data.allegro_price = '0.0';
+              if (data.all_price == null){
+                    data.all_price = '0.0';
               }
-              if (data.nokaut_price == null){
-                  data.nokaut_price = '0.0';
+              if (data.nok_price == null){
+                  data.nok_price = '0.0';
               }
-              $all_price.text(data.allegro_price);
-              $nok_price.text(data.nokaut_price);
-              $all_link.attr('href', data.allegro_link);
-              $nok_link.attr('href', data.nokaut_link);
+              $all_price.text(data.all_price);
+              $nok_price.text(data.nok_price);
+              $all_link.attr('href', data.all_link);
+              $nok_link.attr('href', data.nok_link);
               $last_update.text(data.last_update_str);
               $hits.text(data.search_quantity);
 
