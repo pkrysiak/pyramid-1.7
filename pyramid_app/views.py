@@ -80,7 +80,11 @@ def result_view(request):
             thumb = bigger_img.resize((128, 128))
             thumb.save(thumb_local_path, "JPEG")
 
-    def convert_link_to_template(link):
+    def convert_path_to_template(link):
+        ''' function which converts paths
+            input: ./pyramid_app/static/img/logo_stx.png
+            output: pyramid_app:static/img/logo_stx.png
+        '''
         if os.path.exists(link):
             splitted = link.split('/')[1:]
             beginning = ':'.join(splitted[:2])
@@ -122,9 +126,9 @@ def result_view(request):
 
     return {
         'data' : data,
-        'all_img' : convert_link_to_template(all_img_local_path),
-        'nok_img' : convert_link_to_template(nok_img_local_path),
-        'thumb' : convert_link_to_template(thumb_local_path)
+        'all_img' : convert_path_to_template(all_img_local_path),
+        'nok_img' : convert_path_to_template(nok_img_local_path),
+        'thumb' : convert_path_to_template(thumb_local_path)
     }
 
 
