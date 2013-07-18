@@ -23,10 +23,12 @@ class UserSearch(Base):
     search_id = Column(Integer, primary_key=True)
     last_update = Column(DateTime, default=datetime.today, onupdate=datetime.today)
     search_content = Column(Text, primary_key=True, nullable=False)
-    all_link = Column(Text, nullable=False)
+    all_link = Column(Text)
     all_price = Column(Float, nullable=False)
-    nok_link = Column(Text, nullable=False)
+    all_img_link = Column(Text)
+    nok_link = Column(Text)
     nok_price = Column(Float, nullable=False)
+    nok_img_link = Column(Text)
     search_quantity = Column(Integer, nullable=False)
 
 

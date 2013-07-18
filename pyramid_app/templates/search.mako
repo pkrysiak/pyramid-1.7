@@ -11,6 +11,11 @@
                 <p id="upper_space"> Links:</p>
                 <p id="upper_space"><a class="no_decoration" href = "${data.all_link or '#'}" > ${data.all_link or 'No such item in allegro..'} </a></p>
                 <p id="upper_space"><a class="no_decoration" href = "${data.nok_link or '#'}" > ${data.nok_link or 'No such item in nokaut..'} </a></p>
+                <p id="upper_space"> Thumb:</p>
+                <p id="upper_space">
+                <a href="${request.static_url(all_img)}" data-lightbox="${data.search_content}"><img src="${request.static_url(thumb)}"/></a>
+                <a href="${request.static_url(nok_img)}" data-lightbox="${data.search_content}"></a>
+                </p>
             % endif
         </div>
         <div class="box_photo">

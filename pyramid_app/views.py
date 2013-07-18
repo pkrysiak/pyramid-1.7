@@ -9,6 +9,7 @@ from pyramid_simpleform.renderers import FormRenderer
 from sqlalchemy import desc
 from .models import DBSession, User, UserSearch
 from pyramid.security import remember, forget,authenticated_userid, NO_PERMISSION_REQUIRED
+import Image, os, urllib
 
 @view_config(
     route_name='home',
@@ -26,23 +27,68 @@ def my_view(request):
 )
 def result_view(request):
 
-    def search():
-        try :
-            import ipdb; ipdb.set_trace()
-            all_link, all_price, img = allegro_api(search_phrase, True)
-        except AllegroNoItemEx:
-            all_link, all_price, img = None, None, None
-
-        try:
-            nok_link, nok_price = nokaut_api(search_phrase, nokaut_key)
-        except NokautNoItemEx:
-            nok_link, nok_price = None, None
-
-        return all_link, all_price, nok_link, nok_price
-
     search_phrase = request.GET.get('search_field')
     nokaut_key = request.registry.settings.get('nokaut.key')
     user = request.user
+    path = os.path.join('./pyramid_app/static/', str(user.id))
+    all_img_local_path = os.path.join(path, search_phrase+'_allegro.jpg')
+    nok_img_local_path = os.path.join(path, search_phrase+'_nokaut.jpg')
+    thumb_local_path = os.path.join( path, search_phrase+'.thumb')
+
+    def search():
+        try :
+            all_link, all_price, all_img = allegro_api(search_phrase, True)
+        except AllegroNoItemEx:
+            all_link, all_price, all_img = None, None, None
+
+        try:
+            nok_link, nok_price, nok_img = nokaut_api(search_phrase, nokaut_key, True)
+        except NokautNoItemEx:
+            nok_link, nok_price, nok_img = None, None, None
+
+        return all_link, all_price, nok_link, nok_price, all_img, nok_img
+
+    def download_images(all_img_link, nok_img_link):
+
+        logo = Image.open('./pyramid_app/static/img/logo_stx.png')
+
+        allegro_image, nokaut_image = None, None
+        if all_img_link is not None:
+            urllib.urlretrieve(all_img_link, all_img_local_path)
+            allegro_image = Image.open(all_img_local_path)
+            allegro_image.paste(logo,(allegro_image.size[0]-logo.size[0],allegro_image.size[1]-logo.size[1]))
+            allegro_image.save(all_img_local_path)
+
+        if nok_img_link is not None:
+            urllib.urlretrieve(nok_img_link, nok_img_local_path)
+            nokaut_image = Image.open(nok_img_local_path)
+            nokaut_image.paste(logo,(nokaut_image.size[0]-logo.size[0],nokaut_image.size[1]-logo.size[1]))
+            nokaut_image.save(nok_img_local_path)
+
+        bigger_img = None
+        if allegro_image and nokaut_image:
+            if allegro_image.size > nokaut_image.size:
+                bigger_img = allegro_image
+            elif allegro_image.size < nokaut_image.size:
+                bigger_img = nokaut_image
+        elif allegro_image:
+            bigger_img = allegro_image
+        elif nokaut_image:
+            bigger_img = nokaut_image
+
+        if bigger_img:
+            thumb = bigger_img.resize((128, 128))
+            thumb.save(thumb_local_path, "JPEG")
+
+    def convert_link_to_template(link):
+        if os.path.exists(link):
+            splitted = link.split('/')[1:]
+            beginning = ':'.join(splitted[:2])
+            rest = '/'+'/'.join(splitted[2:])
+            return beginning + rest
+        else:
+            return '#'
+
 
     data = DBSession.query(UserSearch)\
                     .filter(UserSearch.search_id == user.id)\
@@ -50,31 +96,35 @@ def result_view(request):
 
     if data is not None:
         if data.last_update < (datetime.today() - timedelta(days=2)):
-            data.all_link, data.all_price, data.nok_link, data.nok_price = search()
+            data.all_link, data.all_price, data.nok_link, data.nok_price, data.all_img_link, data.nok_img_link = search()
+            download_images(data.all_img_link, data.nok_img_link)
 
         data.search_quantity += 1
         DBSession.flush()
-        return {
-            'data' : data
-        }
     else:
-        all_link, all_price, nok_link, nok_price = search()
+        all_link, all_price, nok_link, nok_price, all_img_link, nok_img_link = search()
 
         data = UserSearch(
             search_id = user.id,
             search_content = search_phrase,
             all_link = all_link,
             all_price = all_price or 0,
+            all_img_link = all_img_link,
             nok_link = nok_link,
             nok_price = nok_price or 0,
+            nok_img_link = nok_img_link,
             search_quantity = 1
         )
         DBSession.add(data)
         DBSession.flush()
 
+        download_images(all_img_link, nok_img_link)
 
     return {
-        'data' : data
+        'data' : data,
+        'all_img' : convert_link_to_template(all_img_local_path),
+        'nok_img' : convert_link_to_template(nok_img_local_path),
+        'thumb' : convert_link_to_template(thumb_local_path)
     }
 
 
@@ -160,6 +210,9 @@ def register_view(request):
                     filter(User.username == new_user.username).first().id
         headers = remember(request, user_id)
 
+        path = os.path.join('./pyramid_app/static/', str(user_id))
+        if not os.path.exists(path):
+            os.makedirs(path)
         return  HTTPFound('/', headers = headers)
     else:
         return {

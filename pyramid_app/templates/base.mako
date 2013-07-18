@@ -4,6 +4,7 @@
     <title></title>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="${request.static_url('pyramid_app:static/css/style.css')}">
+    <link rel="stylesheet" href="${request.static_url('pyramid_app:static/css/lightbox.css')}">
 </head>
 <body>
     <div id="container">
@@ -34,6 +35,8 @@
         </div>
     </div>
     <script src="${request.static_url("pyramid_app:static/js/jquery-1.8.3.min.js")}"></script>
+    <script src="${request.static_url("pyramid_app:static/js/jquery-1.10.2.min.js")}"></script>
+    <script src="${request.static_url("pyramid_app:static/js/lightbox-2.6.min.js")}"></script>
     <script type="text/javascript">
 
     $(document).ready(function() {
@@ -61,7 +64,7 @@
               $nok_price.text(data.nokaut_price);
               $all_link.attr('href', data.allegro_link);
               $nok_link.attr('href', data.nokaut_link);
-              $last_update.text(data.last_update);
+              $last_update.text(data.last_update_str);
               $hits.text(data.search_quantity);
 
            }).done(function() { done(button); })
